@@ -1,8 +1,0 @@
-Experiment Log — Project ORION MIRROR
-
-Findings:
-- Mirror response observed at 1420 MHz.
-- Evidence of active retransmission.
-Conclusions:
-- Codename confirmed: ORION MIRROR
-- orion_mirror_exposed
