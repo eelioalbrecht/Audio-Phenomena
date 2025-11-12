@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Ghost Frequency</title>
+  <style>
+    :root{
+      --bg:#001633;--alt:#ffab40;--text:#e8f0ff;--muted:#b0c2dd;--ok:#41d394;--err:#ff6b6b;--border:#143055;--card:#00204d
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+
+    html,body{
+      min-height:100%;
+      background:var(--bg);
+      color:var(--text);
+      font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;
+      overflow-y:auto;
+    }
+
+    .wrap{display:flex;flex-direction:column;align-items:center;text-align:center;padding:20px}
+
+    header{padding:10px 16px}
+    header h1{font-size:1.8rem;color:var(--alt);text-shadow:0 0 10px rgba(255,171,64,.45)}
+    .tagline{color:var(--muted)}
+
+    .brief{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 16px;box-shadow:0 10px 30px rgba(0,0,0,.35);width:min(980px,92%);margin:20px 0}
+    .brief .chips{margin-top:8px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+    .chip{background:var(--border);border-radius:999px;padding:6px 10px;color:var(--muted)}
+    .btn{appearance:none;border:none;cursor:pointer;background:var(--alt);color:#001633;font-weight:800;border-radius:12px;padding:10px 14px;display:inline-flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 0 10px rgba(255,171,64,.35);transition:filter .2s, transform .08s, box-shadow .3s}
+    .btn:hover{filter:brightness(1.08);transform:translateY(-2px);box-shadow:0 0 18px rgba(255,171,64,.6)}
+    .btn.secondary{background:transparent;color:var(--alt);border:1px solid var(--alt);box-shadow:none}
+    .btn.secondary:hover{background:rgba(255,171,64,.1)}
+
+    /* --- Challenge grid (responsive) --- */
+    .board{width:min(1100px,94%);margin:10px auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;justify-items:center}
+
+    .tile{background:var(--card);border:1px solid var(--border);border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;position:relative;box-shadow:0 8px 30px rgba(0,0,0,.3);padding:16px;min-height:150px;max-width:300px;width:100%}
+    .tile .step{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:var(--alt);color:#001633;font-weight:900;box-shadow:0 0 10px rgba(255,171,64,.5)}
+    .tile h3{font-size:1.05rem}
+    .status{color:var(--muted);font-size:.9rem}
+    .openBtn{margin-top:6px}
+
+    footer{color:var(--muted);padding:8px;margin-top:20px}
+
+    /* --- Modal (question panel) --- */
+    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);z-index:10}
+    .modal.open{display:flex}
+    .panel{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.45);width:min(720px,92%);padding:18px}
+    .panel h4{color:var(--alt);margin-bottom:6px}
+    .panel p{margin:8px 0;color:#d8e6ff}
+    .arts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:10px 0}
+    .arts a{color:var(--alt);text-decoration:none;border:1px dashed var(--alt);padding:6px 10px;border-radius:10px;background:#001a38}
+    .row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:8px}
+    input[type="text"]{min-width:240px;max-width:420px;width:60%;background:#001a38;color:var(--text);border:1px solid var(--alt);border-radius:10px;padding:10px;text-align:center}
+    .result{margin-top:8px;font-weight:800}
+    .ok{color:var(--ok)}.err{color:var(--err)}
+    .panel .actions{display:flex;justify-content:center;gap:10px;margin-top:12px}
+
+    /* --- Animated background --- */
+    .bg{position:fixed;inset:0;z-index:-2;background:var(--bg);}
+    .bg:before, .bg:after{content:"";position:absolute;inset:-20%;}
+    /* Aurora */
+    .bg:before{
+      background:radial-gradient(1000px 600px at 15% 0%, rgba(58,160,255,.18), transparent),
+                 radial-gradient(900px 500px at 70% 10%, rgba(255,171,64,.14), transparent),
+                 radial-gradient(1000px 700px at 40% 120%, rgba(255,105,180,.12), transparent);
+      animation:auroraShift 25s linear infinite;
+    }
+    /* Multicolor stars */
+    .bg:after{
+      background-image:
+        radial-gradient(2px 2px at 10% 20%, rgba(255,171,64,.9) 50%, transparent 55%),
+        radial-gradient(2px 2px at 30% 80%, rgba(64,255,160,.8) 50%, transparent 55%),
+        radial-gradient(2px 2px at 55% 35%, rgba(255,105,180,.85) 50%, transparent 55%),
+        radial-gradient(2px 2px at 75% 60%, rgba(255,171,64,.8) 50%, transparent 55%),
+        radial-gradient(2px 2px at 90% 25%, rgba(64,255,160,.85) 50%, transparent 55%),
+        radial-gradient(2px 2px at 40% 15%, rgba(255,105,180,.7) 50%, transparent 55%),
+        radial-gradient(2px 2px at 12% 75%, rgba(255,171,64,.7) 50%, transparent 55%),
+        radial-gradient(2px 2px at 62% 82%, rgba(64,255,160,.7) 50%, transparent 55%);
+      background-repeat:no-repeat;
+      animation:twinkle 6s ease-in-out infinite alternate;
+      opacity:.8;
+    }
+    @keyframes auroraShift{0%{transform:translate3d(0,0,0)}100%{transform:translate3d(-6%, -3%, 0)}}
+    @keyframes twinkle{0%{opacity:.4;filter:blur(0px)}100%{opacity:.9;filter:blur(.3px)}}
+  </style>
+</head>
+<body>
+  <div class="bg" aria-hidden="true"></div>
+  <div class="wrap">
+    <header>
+      <h1>🛰️ The Ghost Frequency</h1>
+      <p class="tagline">Final Project - The Ghost Frequency - The Murder of Dr. Elias Rane</p>
+    </header>
+
+    <section class="brief">
+      <p>Dr. <strong>Elias Rane</strong> of the <em>Aurora Radio Observatory</em> died after reporting a repeating radio signal. Solve each step to uncover the truth.</p>
+      <div class="chips">
+        <span class="chip">Difficulty: M-H</span>
+        <span class="chip">Flag format: pss{}</span>
+        <button id="reset" class="btn secondary">Reset Progress</button>
+      </div>
+    </section>
+
+    <section class="board" id="board"></section>
+
+    <footer>
+      <small>Think: Audio-Phenomena</small>
+    </footer>
+  </div>
+
+  <div class="modal" id="modal" aria-hidden="true">
+    <div class="panel">
+      <h4 id="mTitle">Challenge</h4>
+      <p id="mPrompt">Prompt goes here.</p>
+      <div class="arts" id="mArts"></div>
+      <div class="row">
+        <input id="mInput" type="text" placeholder="pss{}" />
+        <button id="mSubmit" class="btn secondary">Submit</button>
+      </div>
+      <div class="result" id="mResult"></div>
+      <div class="actions">
+        <button id="mClose" class="btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const CHALLENGES=[
+      {id:"c1",step:1,title:"The Blog Post",prompt:"A JPEG image supposedly taken at the Aurora Radio Observatory. Inspect the image and find the location.",artifacts:[{label:"aurora.jpg",href:"aurora.jpg"}],accepts:["pss{lapland_finland}","pss{lapland}"],win:"GPS: Lapland, Finland."},
+      {id:"c2",step:2,title:"The Audio",prompt:"View spectrogram to find the GitHub handle.",artifacts:[{label:"Echo#4_Refraction.wav",href:"Untitled.wav"}],accepts:["pss{eelioalbrecht}","pss{@eelioalbrecht}"],win:"Handle: /eelioalbrecht."},
+      {id:"c3",step:3,title:"The Repository",prompt:"Decrypt the files of the repo. What file name appeares?",artifacts:[{label:"Repo Link",href:"https://github.com/eelioalbrecht"}],accepts:["pss{lights_out.png}"],win:"Next: lights_out.jpg."},
+      {id:"c4",step:4,title:"Night Photo",prompt:"Dr. Rane loved his homemade vinegar. Inspect his files for hidden messages he wrote under the influence.",artifacts:[{label:"GitHub",href:"https://github.com/eelioalbrecht"}],accepts:["pss{Project ORION MIRROR}"],win:"Codename: ORION MIRROR."},
+      {id:"c5",step:5,title:"What Happened?",prompt:"Go thru the logs to find something.",artifacts:[{label:"Repo Link",href:"https://github.com/eelioalbrecht"}],accepts:["pss{orion mirror_exposed}"],win:"Decryption successful."},
+      {id:"c6",step:6,title:"Final Upload",prompt:"Dr. Rane wanted us to go thru his final notes. Lets atleast figure out where he was found *dead* (place id).",artifacts:[{label:"Repo Link",href:"https://github.com/eelioalbrecht"}],accepts:["pss{ChIJQx1GgvLuKogRiihC15gVc1Y}"],win:"Aurora GO Station 2"},
+      {id:"c7",step:7,title:"The Flag",prompt:"Submit the final flag.",artifacts:[],accepts:["pss{they_listened_too_closely}"],win:"Flag accepted! Case closed. Verdict: Suicide. TBC..."}
+    ];
+
+    const KEY="ghost-frequency-progress"; let progress=JSON.parse(localStorage.getItem(KEY)||"{}");
+    const $=s=>document.querySelector(s); const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+
+    const board=$('#board');
+    const modal=$('#modal');
+    const mTitle=$('#mTitle'); const mPrompt=$('#mPrompt'); const mArts=$('#mArts');
+    const mInput=$('#mInput'); const mSubmit=$('#mSubmit'); const mResult=$('#mResult'); const mClose=$('#mClose');
+
+    let current=null;
+
+    function save(){localStorage.setItem(KEY,JSON.stringify(progress));}
+    function reset(){progress={};save();render();}
+
+    function tile(ch, unlocked, solved){
+      const el=document.createElement('div');
+      el.className='tile'; el.dataset.id=ch.id;
+      el.innerHTML=`<div class='step'>${ch.step}</div><h3>${ch.title}</h3><div class='status'>${solved?'✅ Solved':(unlocked?'Ready':'🔒 Locked')}</div><button class='btn openBtn' ${!unlocked&&!solved?'disabled':''}>Open</button>`;
+      el.querySelector('.openBtn').addEventListener('click',()=>openModal(ch, unlocked, solved));
+      return el;
+    }
+
+    function render(){
+      board.innerHTML='';
+      let unlocked=true;
+      CHALLENGES.forEach((ch,i)=>{
+        const solved=!!progress[ch.id];
+        if(!solved && i>0 && !progress[CHALLENGES[i-1].id]) unlocked=false;
+        const el=tile(ch, unlocked||solved, solved);
+        board.appendChild(el);
+      });
+    }
+
+    function openModal(ch, unlocked, solved){
+      if(!unlocked && !solved) return;
+      current = ch;
+      mTitle.textContent = `${ch.step}. ${ch.title}`;
+      mPrompt.textContent = ch.prompt;
+      mArts.innerHTML = ch.artifacts.map(a=>`<a href='${a.href}'>${a.label}</a>`).join('');
+      mInput.disabled = !!solved; mSubmit.disabled = !!solved;
+      mInput.value = solved ? '✔ solved' : '';
+      mResult.textContent = '';
+      modal.classList.add('open');
+    }
+
+    function closeModal(){ modal.classList.remove('open'); current=null; }
+
+    mClose.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e)=>{ if(e.target===modal) closeModal(); });
+
+    mSubmit.addEventListener('click', ()=>{
+      if(!current) return;
+      const val=(mInput.value||'').trim().toLowerCase();
+      if(!val){ mResult.textContent='Enter answer'; mResult.className='result err'; return; }
+      const ok = current.accepts.some(x=>x.toLowerCase()===val);
+      if(ok){
+        progress[current.id]=true; save();
+        mResult.textContent=current.win; mResult.className='result ok';
+        mInput.value='✔ solved'; mInput.disabled=true; mSubmit.disabled=true;
+        render();
+      } else { mResult.textContent='Incorrect'; mResult.className='result err'; }
+    });
+
+    $('#reset').addEventListener('click', ()=>{ if(confirm('Reset progress?')) reset(); });
+
+    render();
+  </script>
+</body>
+</html>
